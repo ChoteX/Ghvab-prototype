@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>სავარჯიშოები</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Latin+Modern+Roman:ital,wght@0,400;0,700;1,400;1,700&family=Noto+Serif+Georgian:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../katex/katex.min.css">
+    <link rel="stylesheet" href="../styles.css">
+    <script defer src="../katex/katex.min.js"></script>
+    <script defer src="../katex/contrib/auto-render.min.js"></script>
+</head>
+<body class="with-header">
+    <header class="page-header">
+        <div class="header-inner">
+            <h1 class="header-title">სავარჯიშოები და ტესტები</h1>
+            <nav class="header-links">
+                <a class="header-link" href="../part1.html">მთავარი თავი</a>
+                <a class="header-link" href="../part1_english.html">English Chapter</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="page-layout">
+        <aside class="sidebar">
+            <h2>სარჩევი</h2>
+            <nav aria-label="სავარჯიშოების პარაგრაფები">
+                <ul class="nav-switch">
+                    <li><button class="nav-switch-button active" data-paragraph="par1">ნაწილი I</button></li>
+                    <li><button class="nav-switch-button" data-paragraph="par2">ნაწილი II</button></li>
+                </ul>
+            </nav>
+        </aside>
+        <main class="main-content" id="exercise-content">
+            <p id="exercise-status" class="loading-message">იტვირთება…</p>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const katexConfig = {
+                delimiters: [
+                    { left: "$$", right: "$$", display: true },
+                    { left: "\\[", right: "\\]", display: true },
+                    { left: "$", right: "$", display: false },
+                    { left: "\\(", right: "\\)", display: false },
+                    { left: "\\begin{align}", right: "\\end{align}", display: true }
+                ]
+            };
+
+            const resources = {
+                par1: "../exercises/par1.json",
+                par2: "../exercises/par2.json"
+            };
+
+            const cache = new Map();
+            const contentRoot = document.getElementById("exercise-content");
+            const statusMessage = document.getElementById("exercise-status");
+            const switchButtons = Array.from(document.querySelectorAll(".nav-switch-button"));
+
+            let activeKey = "par1";
+            const GEMINI_API_KEY = "AIzaSyD-i9ejOlPP-PIOu11v5-GkKc7IbnL3GDY";
+            const GEMINI_MODEL = "gemini-1.5-flash-latest";
+            const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+            const OPTION_LETTERS = ["a", "b", "c", "d"];
+
+            const QUIZ_SYSTEM_PROMPT = [
+                "You are an experienced middle-school mathematics teacher.",
+                "Produce fresh practice quizzes that stay on the same learning objectives as the provided source material but avoid reusing the exact numbers or wording.",
+                "Respond with strict JSON that can be parsed with JSON.parse; do not wrap it in code fences or add commentary.",
+                "Schema:",
+                '{',
+                '  "questions": [',
+                '    {',
+                '      "id": "q1",',
+                '      "number": "1.",',
+                '      "prompt": "Question text with optional HTML/LaTeX",',
+                '      "options": [',
+                '        { "value": "a", "label": "Option text" },',
+                '        { "value": "b", "label": "Option text" },',
+                '        { "value": "c", "label": "Option text" },',
+                '        { "value": "d", "label": "Option text" }',
+                '      ]',
+                '    }',
+                '  ],',
+                '  "answerKey": {',
+                '    "q1": { "correct": "c", "explanation": "Reasoning in sentences.", "scored": true }',
+                '  }',
+                '}',
+                "Always return exactly 10 questions, each with four options and a matching answerKey entry.",
+                "Use lowercase letters a-d for option values and for the correct answer.",
+                "Each explanation must outline the computation or reasoning leading to the correct answer in 1–3 sentences.",
+                "Ensure incorrect options are plausible numerical or conceptual distractors close to the correct answer.",
+                "Avoid mentioning that you were given source material."
+            ].join("\n");
+
+            function sanitizeModelJson(text) {
+                if (!text) {
+                    return "";
+                }
+                const fencedMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
+                if (fencedMatch) {
+                    return fencedMatch[1].trim();
+                }
+                return text.trim();
+            }
+
+            function stripHtml(text) {
+                if (typeof text !== "string") {
+                    return "";
+                }
+                return text.replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
+            }
+
+            function prepareQuizContext(section) {
+                if (!section?.quiz) {
+                    return "";
+                }
+                const questions = Array.isArray(section.quiz.questions) ? section.quiz.questions : [];
+                const answerKey = section.quiz.answerKey || {};
+                return questions
+                    .map((question, index) => {
+                        const number = question?.number || `${index + 1}.`;
+                        const prompt = stripHtml(question?.prompt || "");
+                        const options = Array.isArray(question?.options)
+                            ? question.options
+                                .map((option, optionIndex) => {
+                                    if (typeof option === "string") {
+                                        return `${OPTION_LETTERS[optionIndex]}) ${option}`;
+                                    }
+                                    const label = stripHtml(option?.label || "");
+                                    return `${option?.value || OPTION_LETTERS[optionIndex]}) ${label}`;
+                                })
+                                .join("; ")
+                            : "";
+                        const key = answerKey?.[question?.id];
+                        const correct = key?.correct ? key.correct : "unknown";
+                        const explanation = stripHtml(key?.explanation || "");
+                        return [
+                            `Question ${number} ${prompt}`,
+                            options ? `Options: ${options}` : "",
+                            `Annotated correct answer: ${correct}`,
+                            explanation ? `Explanation: ${explanation}` : ""
+                        ]
+                            .filter(Boolean)
+                            .join("\n");
+                    })
+                    .join("\n\n");
+            }
+
+            function buildGenerationPrompt(section) {
+                const title = section?.title || "Unnamed quiz";
+                const context = prepareQuizContext(section);
+                const instructions = [
+                    `Paragraph title: ${title}`,
+                    "Create a brand new interactive quiz with exactly 10 multiple-choice questions.",
+                    "Match the difficulty, topic focus, and structure of the reference quiz while ensuring fresh contexts, numbers, and phrasing.",
+                    "Keep questions self-contained and solvable with the arithmetic and number-theory tools implied by the source.",
+                    "Allow LaTeX for mathematical notation using $...$ where appropriate.",
+                    "Ensure each question supplies one correct answer and three plausible distractors near the correct result.",
+                    "Every answerKey entry must set \"scored\" to true and include a concise explanation of the reasoning or calculation.",
+                    "Do not copy wording verbatim from the source quiz."
+                ];
+
+                return [instructions.join("\n"), "\nSource quiz (for style reference only):\n", context].join("");
+            }
+
+            function normalizeOptions(rawOptions) {
+                if (!Array.isArray(rawOptions) || rawOptions.length !== 4) {
+                    throw new Error("Model must return exactly four answer choices per question.");
+                }
+
+                return rawOptions.map((item, index) => {
+                    if (typeof item === "string") {
+                        return {
+                            label: item,
+                            originalValue: OPTION_LETTERS[index],
+                            matchText: stripHtml(item).toLowerCase(),
+                            isCorrect: false
+                        };
+                    }
+
+                    if (item && typeof item === "object") {
+                        const label = typeof item.label === "string" ? item.label : typeof item.text === "string" ? item.text : "";
+                        return {
+                            label,
+                            originalValue: typeof item.value === "string" ? item.value : OPTION_LETTERS[index],
+                            matchText: stripHtml(label).toLowerCase(),
+                            isCorrect: item.isCorrect === true || item.correct === true,
+                            raw: item
+                        };
+                    }
+
+                    throw new Error("Each option must be an object or string.");
+                });
+            }
+
+            function matchCorrectIndex(questionId, options, candidateValue) {
+                if (candidateValue === undefined || candidateValue === null) {
+                    return -1;
+                }
+
+                const lowered = String(candidateValue).trim().toLowerCase();
+
+                if (OPTION_LETTERS.includes(lowered)) {
+                    return options.findIndex((option) => option.originalValue === lowered);
+                }
+
+                const asNumber = Number.parseInt(lowered, 10);
+                if (!Number.isNaN(asNumber) && asNumber >= 1 && asNumber <= options.length) {
+                    return asNumber - 1;
+                }
+
+                return options.findIndex((option) => option.matchText === stripHtml(candidateValue).toLowerCase());
+            }
+
+            function randomizeOptions(options, correctIndex) {
+                const decorated = options.map((option, index) => ({
+                    label: option.label,
+                    isCorrect: index === correctIndex || option.isCorrect === true,
+                    matchText: option.matchText,
+                    originalValue: option.originalValue
+                }));
+
+                for (let i = decorated.length - 1; i > 0; i -= 1) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [decorated[i], decorated[j]] = [decorated[j], decorated[i]];
+                }
+
+                let correctLetter = null;
+                decorated.forEach((option, index) => {
+                    option.value = OPTION_LETTERS[index];
+                    if (option.isCorrect) {
+                        correctLetter = option.value;
+                    }
+                });
+
+                if (!correctLetter) {
+                    throw new Error("Unable to determine correct option after shuffling.");
+                }
+
+                return {
+                    options: decorated.map((option) => ({
+                        value: option.value,
+                        label: option.label
+                    })),
+                    correctLetter
+                };
+            }
+
+            function normalizeGeneratedQuiz(payload) {
+                if (!payload || typeof payload !== "object") {
+                    throw new Error("Model response missing.");
+                }
+
+                const questions = Array.isArray(payload.questions) ? payload.questions : [];
+                if (questions.length !== 10) {
+                    throw new Error("Model must return exactly 10 questions.");
+                }
+
+                const answerKey = payload.answerKey && typeof payload.answerKey === "object" ? payload.answerKey : {};
+
+                const normalizedQuestions = [];
+                const normalizedAnswerKey = {};
+
+                questions.forEach((question, index) => {
+                    const id = question?.id || `q${index + 1}`;
+                    const number = question?.number || `${index + 1}.`;
+                    const prompt = typeof question?.prompt === "string" ? question.prompt.trim() : "";
+                    if (!prompt) {
+                        throw new Error(`Question ${index + 1} is missing a prompt.`);
+                    }
+
+                    const parsedOptions = normalizeOptions(question.options);
+                    let correctIndex = parsedOptions.findIndex((option) => option.isCorrect);
+
+                    const answerEntry = answerKey?.[id];
+                    let candidateValue = answerEntry?.correct;
+                    if (candidateValue && typeof candidateValue === "object") {
+                        candidateValue = candidateValue.value || candidateValue.option || candidateValue.label || candidateValue.text || candidateValue.answer || "";
+                    }
+                    if (typeof candidateValue === "string") {
+                        candidateValue = candidateValue.trim();
+                    }
+                    let explanation = typeof answerEntry?.explanation === "string" ? answerEntry.explanation.trim() : "";
+
+                    if (correctIndex === -1) {
+                        correctIndex = matchCorrectIndex(id, parsedOptions, candidateValue);
+                    }
+
+                    if (correctIndex === -1 && question?.answer) {
+                        if (typeof question.answer === "string") {
+                            correctIndex = matchCorrectIndex(id, parsedOptions, question.answer);
+                            if (!explanation) {
+                                explanation = question.answerExplanation || "";
+                            }
+                        } else if (typeof question.answer === "object") {
+                            correctIndex = matchCorrectIndex(id, parsedOptions, question.answer.value || question.answer.correct || question.answer.option);
+                            if (!explanation) {
+                                explanation = question.answer.explanation || question.answer.reason || "";
+                            }
+                        }
+                    }
+
+                    if (correctIndex === -1 && typeof question?.correctOption === "string") {
+                        correctIndex = matchCorrectIndex(id, parsedOptions, question.correctOption);
+                    }
+
+                    if (correctIndex === -1) {
+                        throw new Error(`Question ${id} is missing a valid correct answer.`);
+                    }
+
+                    const { options: randomizedOptions, correctLetter } = randomizeOptions(parsedOptions, correctIndex);
+
+                    normalizedQuestions.push({
+                        id,
+                        number,
+                        prompt,
+                        options: randomizedOptions
+                    });
+
+                    normalizedAnswerKey[id] = {
+                        correct: correctLetter,
+                        explanation: explanation || "Refer to the solution steps provided in class.",
+                        scored: true
+                    };
+                });
+
+                return {
+                    questions: normalizedQuestions,
+                    answerKey: normalizedAnswerKey
+                };
+            }
+
+            async function requestGeminiQuiz(section) {
+                if (!GEMINI_API_KEY) {
+                    throw new Error("Missing Gemini API key.");
+                }
+
+                const requestBody = {
+                    system_instruction: {
+                        role: "system",
+                        parts: [{ text: QUIZ_SYSTEM_PROMPT }]
+                    },
+                    contents: [
+                        {
+                            role: "user",
+                            parts: [{ text: buildGenerationPrompt(section) }]
+                        }
+                    ],
+                    generationConfig: {
+                        temperature: 0.4,
+                        topP: 0.9,
+                        topK: 40,
+                        maxOutputTokens: 2048
+                    }
+                };
+
+                const controller = new AbortController();
+                const timeoutId = window.setTimeout(() => controller.abort(), 45000);
+
+                const response = await fetch(`${GEMINI_ENDPOINT}?key=${encodeURIComponent(GEMINI_API_KEY)}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(requestBody),
+                    signal: controller.signal
+                });
+
+                window.clearTimeout(timeoutId);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Gemini request failed (${response.status}): ${errorText || "Unknown error"}`);
+                }
+
+                const data = await response.json();
+                const primaryCandidate = data?.candidates?.[0];
+                const rawText = Array.isArray(primaryCandidate?.content?.parts)
+                    ? primaryCandidate.content.parts
+                        .map((part) => part?.text || "")
+                        .filter(Boolean)
+                        .join("\n")
+                    : "";
+
+                const sanitized = sanitizeModelJson(rawText);
+                if (!sanitized) {
+                    throw new Error("Gemini returned an empty response.");
+                }
+
+                let parsed;
+                try {
+                    parsed = JSON.parse(sanitized);
+                } catch (error) {
+                    throw new Error("Gemini response was not valid JSON.");
+                }
+
+                return normalizeGeneratedQuiz(parsed);
+            }
+
+            function populateQuizSection(section) {
+                const container = section?._element;
+                if (!container) {
+                    return;
+                }
+
+                container.innerHTML = "";
+
+                if (section.title) {
+                    const heading = document.createElement("h2");
+                    heading.className = "text-xl font-bold mb-6";
+                    heading.textContent = section.title;
+                    container.appendChild(heading);
+                }
+
+                const form = document.createElement("form");
+                form.className = "space-y-4";
+                form.noValidate = true;
+
+                const questions = section.quiz?.questions || [];
+                questions.forEach((question) => {
+                    const wrapper = document.createElement("div");
+                    wrapper.className = "quiz-question";
+                    wrapper.dataset.questionId = question.id;
+
+                    const prompt = document.createElement("p");
+                    prompt.innerHTML = `<strong>${question.number}</strong> ${question.prompt}`;
+                    wrapper.appendChild(prompt);
+
+                    const choicesWrapper = document.createElement("div");
+                    choicesWrapper.className = "quiz-choices";
+
+                    (question.options || []).forEach((option) => {
+                        const label = document.createElement("label");
+                        label.className = "quiz-choice";
+
+                        const input = document.createElement("input");
+                        input.type = "radio";
+                        input.name = question.id;
+                        input.value = option.value;
+
+                        const span = document.createElement("span");
+                        span.innerHTML = option.label;
+
+                        label.appendChild(input);
+                        label.appendChild(span);
+                        choicesWrapper.appendChild(label);
+                    });
+
+                    wrapper.appendChild(choicesWrapper);
+
+                    const feedback = document.createElement("div");
+                    feedback.className = "quiz-feedback hidden";
+                    wrapper.appendChild(feedback);
+
+                    form.appendChild(wrapper);
+                });
+
+                const actionRow = document.createElement("div");
+                actionRow.className = "quiz-actions";
+
+                const finishButton = document.createElement("button");
+                finishButton.type = "button";
+                finishButton.id = "exercise-quiz-finish";
+                finishButton.className = "btn btn-primary";
+                finishButton.textContent = "შედეგის ნახვა";
+                actionRow.appendChild(finishButton);
+
+                const resetButton = document.createElement("button");
+                resetButton.type = "button";
+                resetButton.id = "exercise-quiz-reset";
+                resetButton.className = "btn btn-secondary";
+                resetButton.textContent = "თავიდან დაწყება";
+                actionRow.appendChild(resetButton);
+
+                form.appendChild(actionRow);
+
+                const resultBox = document.createElement("div");
+                resultBox.id = "exercise-quiz-result";
+                resultBox.className = "quiz-result hidden";
+                resultBox.setAttribute("role", "status");
+                resultBox.setAttribute("aria-live", "polite");
+
+                container.appendChild(form);
+                container.appendChild(resultBox);
+
+                const regenerateRow = document.createElement("div");
+                regenerateRow.className = "quiz-regenerate";
+
+                const regenerateButton = document.createElement("button");
+                regenerateButton.type = "button";
+                regenerateButton.className = "btn btn-tertiary";
+                regenerateButton.textContent = "generate new test from this paragraph";
+                regenerateRow.appendChild(regenerateButton);
+
+                const regenerateStatus = document.createElement("div");
+                regenerateStatus.className = "quiz-regenerate-status";
+                regenerateStatus.setAttribute("role", "status");
+                regenerateStatus.setAttribute("aria-live", "polite");
+                regenerateRow.appendChild(regenerateStatus);
+
+                container.appendChild(regenerateRow);
+
+                attachQuizHandlers(form, resultBox, section.quiz?.answerKey || {});
+
+                regenerateButton.addEventListener("click", () => {
+                    regenerateButton.disabled = true;
+                    regenerateStatus.textContent = "Generating new quiz...";
+                    regenerateStatus.classList.remove("error");
+
+                    requestGeminiQuiz(section)
+                        .then((normalizedQuiz) => {
+                            section.quiz.questions = normalizedQuiz.questions;
+                            section.quiz.answerKey = normalizedQuiz.answerKey;
+                            populateQuizSection(section);
+                            if (typeof renderMathInElement === "function") {
+                                renderMathInElement(section._element, katexConfig);
+                            }
+                            const refreshedStatus = section._element?.querySelector(".quiz-regenerate-status");
+                            if (refreshedStatus) {
+                                refreshedStatus.textContent = "New quiz generated. Review the questions above.";
+                                refreshedStatus.classList.remove("error");
+                            }
+                        })
+                        .catch((error) => {
+                            regenerateStatus.textContent = error.message || "Unable to generate quiz.";
+                            regenerateStatus.classList.add("error");
+                            regenerateButton.disabled = false;
+                            // eslint-disable-next-line no-console
+                            console.error(error);
+                        });
+                });
+
+                if (typeof renderMathInElement === "function") {
+                    renderMathInElement(container, katexConfig);
+                }
+            }
+
+            function clearContent() {
+                while (contentRoot.firstChild) {
+                    contentRoot.removeChild(contentRoot.firstChild);
+                }
+            }
+
+            function renderParagraph(data) {
+                if (!data) {
+                    return;
+                }
+
+                document.title = data.meta?.title || "სავარჯიშოები";
+                const headerTitle = document.querySelector(".header-title");
+                if (headerTitle) {
+                    headerTitle.textContent = data.meta?.title || "სავარჯიშოები და ტესტები";
+                }
+
+                data.sections.forEach((section) => {
+                    if (section.type === "quiz" && section.quiz) {
+                        renderQuizSection(section);
+                        return;
+                    }
+
+                    const sectionEl = document.createElement("section");
+                    sectionEl.className = "mb-10";
+
+                    if (section.title) {
+                        const heading = document.createElement("h2");
+                        heading.className = "text-xl font-bold mb-6";
+                        heading.textContent = section.title;
+                        sectionEl.appendChild(heading);
+                    }
+
+                    (section.blocks || []).forEach((block) => {
+                        if (block.type === "ordered-list") {
+                            const list = document.createElement("ol");
+                            list.className = "exercise-list";
+                            block.items.forEach((item) => {
+                                const listItem = document.createElement("li");
+                                const numberSpan = document.createElement("span");
+                                numberSpan.className = "font-bold exercise-number";
+                                numberSpan.textContent = item.number || "";
+                                listItem.appendChild(numberSpan);
+
+                                const lines = Array.isArray(item.lines) ? item.lines : [item.text || ""];
+                                const textContainer = document.createElement("div");
+                                textContainer.className = "exercise-text";
+                                lines.forEach((line, index) => {
+                                    if (index > 0) {
+                                        textContainer.appendChild(document.createElement("br"));
+                                    }
+                                    const span = document.createElement("span");
+                                    span.innerHTML = line;
+                                    textContainer.appendChild(span);
+                                });
+                                listItem.appendChild(textContainer);
+                                list.appendChild(listItem);
+                            });
+                            sectionEl.appendChild(list);
+                        } else if (block.type === "paragraph") {
+                            const p = document.createElement("p");
+                            p.className = "mb-4";
+                            p.innerHTML = block.text;
+                            sectionEl.appendChild(p);
+                        } else if (block.type === "note") {
+                            const p = document.createElement("p");
+                            p.className = "text-sm text-gray-600 mb-4";
+                            p.innerHTML = `<em>${block.text}</em>`;
+                            sectionEl.appendChild(p);
+                        }
+                    });
+
+                    contentRoot.appendChild(sectionEl);
+                });
+
+                renderMathInElement(contentRoot, katexConfig);
+            }
+
+            function renderQuizSection(section) {
+                const container = document.createElement("section");
+                container.className = "mb-10 quiz-section";
+                section._element = container;
+
+                contentRoot.appendChild(container);
+                populateQuizSection(section);
+            }
+
+            function attachQuizHandlers(form, resultContainer, answerKey) {
+                const finishButton = form.querySelector("#exercise-quiz-finish");
+                const resetButton = form.querySelector("#exercise-quiz-reset");
+
+                finishButton.addEventListener("click", () => {
+                    evaluateQuiz(form, resultContainer, answerKey);
+                    renderMathInElement(form, katexConfig);
+                });
+
+                resetButton.addEventListener("click", () => {
+                    resetQuiz(form, resultContainer);
+                    renderMathInElement(form, katexConfig);
+                });
+            }
+
+            function evaluateQuiz(form, resultContainer, answerKey) {
+                const questions = Array.from(form.querySelectorAll(".quiz-question"));
+                let score = 0;
+                let total = 0;
+                let unscored = 0;
+
+                questions.forEach((question) => {
+                    const questionId = question.dataset.questionId;
+                    const key = answerKey[questionId];
+                    const feedback = question.querySelector(".quiz-feedback");
+                    const choices = Array.from(question.querySelectorAll(".quiz-choice"));
+                    choices.forEach((choice) => choice.classList.remove("correct", "incorrect"));
+
+                    const selected = question.querySelector("input:checked");
+
+                    if (key?.scored) {
+                        total += 1;
+                    } else {
+                        unscored += 1;
+                    }
+
+                    if (key?.correct) {
+                        choices.forEach((choice) => {
+                            const input = choice.querySelector("input");
+                            if (input && input.value === key.correct) {
+                                choice.classList.add("correct");
+                            }
+                        });
+                    }
+
+                    if (selected && key?.correct && selected.value !== key.correct) {
+                        selected.closest(".quiz-choice")?.classList.add("incorrect");
+                    }
+
+                    if (selected && key?.correct && selected.value === key.correct && key.scored) {
+                        score += 1;
+                    }
+
+                    if (feedback) {
+                        feedback.textContent = key?.explanation || "";
+                        feedback.classList.toggle("hidden", !feedback.textContent);
+                    }
+                });
+
+                const summary = [];
+                if (total > 0) {
+                    summary.push(`სწორად პასუხობ ${score} კითხვას ${total}-დან.`);
+                }
+                if (unscored > 0) {
+                    summary.push(`${unscored} დამატებითი კითხვა შეფასებას არ ექვემდებარება.`);
+                }
+
+                resultContainer.textContent = summary.join(" ");
+                resultContainer.classList.remove("hidden");
+            }
+
+            function resetQuiz(form, resultContainer) {
+                Array.from(form.querySelectorAll("input[type=\"radio\"]")).forEach((input) => {
+                    input.checked = false;
+                });
+
+                Array.from(form.querySelectorAll(".quiz-choice")).forEach((choice) => {
+                    choice.classList.remove("correct", "incorrect");
+                });
+
+                Array.from(form.querySelectorAll(".quiz-feedback")).forEach((feedback) => {
+                    feedback.textContent = "";
+                    feedback.classList.add("hidden");
+                });
+
+                resultContainer.textContent = "";
+                resultContainer.classList.add("hidden");
+            }
+
+            function activateButton(key) {
+                switchButtons.forEach((button) => {
+                    button.classList.toggle("active", button.dataset.paragraph === key);
+                });
+            }
+
+            function loadParagraph(key) {
+                if (!resources[key]) {
+                    return;
+                }
+
+                activeKey = key;
+                activateButton(key);
+                clearContent();
+
+                if (statusMessage) {
+                    statusMessage.textContent = "იტვირთება…";
+                    statusMessage.classList.remove("hidden");
+                    contentRoot.appendChild(statusMessage);
+                }
+
+                const cached = cache.get(key);
+                if (cached) {
+                    if (statusMessage) {
+                        statusMessage.textContent = "";
+                        statusMessage.classList.add("hidden");
+                    }
+                    clearContent();
+                    renderParagraph(cached);
+                    renderMathInElement(contentRoot, katexConfig);
+                    return;
+                }
+
+                fetch(resources[key])
+                    .then((response) => {
+                        if (!response.ok) {
+                            throw new Error(`Failed to load ${resources[key]} (${response.status})`);
+                        }
+                        return response.json();
+                    })
+                    .then((data) => {
+                        cache.set(key, data);
+                        if (statusMessage) {
+                            statusMessage.textContent = "";
+                            statusMessage.classList.add("hidden");
+                        }
+                        clearContent();
+                        renderParagraph(data);
+                        renderMathInElement(contentRoot, katexConfig);
+                    })
+                    .catch((error) => {
+                        clearContent();
+                        const errorMessage = document.createElement("p");
+                        errorMessage.className = "error-message";
+                        errorMessage.textContent = "შეცდომა მოხდა შინაარსის ჩატვირთვისას. სცადეთ მოგვიანებით.";
+                        contentRoot.appendChild(errorMessage);
+                        // eslint-disable-next-line no-console
+                        console.error(error);
+                    });
+            }
+
+            switchButtons.forEach((button) => {
+                button.addEventListener("click", () => {
+                    const key = button.dataset.paragraph;
+                    if (key && key !== activeKey) {
+                        loadParagraph(key);
+                    }
+                });
+            });
+
+            loadParagraph(activeKey);
+        });
+    </script>
+</body>
+</html>
