@@ -125,9 +125,3 @@ Your goal is to combine these pieces into a single web application that allows u
 4. Open the site in your browser. Sign up with a test account, browse the available textbooks, read the theory sections, generate exercises and tests, and verify that progress and quiz history are tracked correctly.
 
 ---
-
-## Summary
-
-Following these instructions, ChatGPT Codex should integrate the four sub-projects into a cohesive learning platform. Users will be able to register or log in, select a textbook, read theory and exercises directly from LaTeX files rendered via KaTeX, track their reading progress, generate new tests using the Gemini 2.5 Pro API, and review their quiz history. All user data will be stored securely in Supabase. 
-
-**Remember: do not implement code in this markdown file, but describe the changes needed so that the final prototype matches the design diagram provided.**
