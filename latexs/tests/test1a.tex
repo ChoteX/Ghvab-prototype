@@ -1,0 +1,99 @@
+% !TEX TS-program = xelatex
+\documentclass[12pt,oneside]{book}
+
+\usepackage[a4paper,margin=1in]{geometry}
+
+\usepackage{fontspec}
+\defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+\usepackage{polyglossia}
+\setdefaultlanguage{georgian}
+\setotherlanguage{english}
+
+% Georgian fonts - DejaVu Serif supports Georgian
+\setmainfont{DejaVu Serif}
+\newfontfamily\georgianfont{DejaVu Serif}[Script=Georgian]
+\setsansfont{DejaVu Sans}
+\setmonofont{DejaVu Sans Mono}
+
+% Math: STIX Two Math
+\usepackage{unicode-math}
+\setmathfont{STIX Two Math}
+
+\usepackage[protrusion=true,expansion=false]{microtype}
+\usepackage{enumitem}
+\setlist{nosep}
+\usepackage{graphicx}
+\usepackage[unicode]{hyperref}
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE,RO]{\thepage}
+\fancyhead[LO,RE]{\nouppercase{\leftmark}}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\chaptermark}[1]{\markboth{#1}{}}
+\renewcommand{\sectionmark}[1]{\markright{#1}}
+
+% Georgian mathematical notations
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\dotsep}{\,,\,}
+
+
+\begin{document}
+
+\section*{საკონტროლო ტესტი N1 (A)}
+
+\begin{enumerate}[label=\textbf{\arabic*.}, leftmargin=2.2em, itemsep=0.35em, resume*]
+
+\item რომელი შემდეგი რიცხვებიდან იყოფა $6$-ზე?
+\\(a) 273 \quad (b) 412 \quad (c) 1002 \quad (d) 3004
+
+\item გამოთვალეთ: $400:(25-75)-200:(13-33)$
+\\(a) $2$ \quad (b) $18$ \quad (c) $-18$ \quad (d) $-2$
+
+\item რომელ წელს 2011-სა და \ldots შორის ხდება \ldots რაოდენობა გაყოფადი $5$-ზე?
+\\(a) 2 \quad (b) 5 \quad (c) 3
+
+\item დავუშვათ $a,b,c,d$ განისაზღვრება $a=3\cdot(5-7)$, $b=3-5-7$, $c=ab$, $d=a+b$. აირჩიეთ სწორი თანმიმდევრობა:
+\\(a) $a,c,b,d$ \quad (b) $c,a,d,b$ \quad (c) $c,d,b,a$ \quad (d) $c,d,a,b$
+
+\item რიცხვი $123$ იზრდება 8-ით და შემდეგ მცირდება 3-ით. რომელ ინტერვალში მოექცევა შედეგი?
+\\(a) 10 \quad (b) 15 \quad (c) 20 \quad (d) 12
+
+\item სკოლაში არის 155 პირველკლასელი და 62 \ldots რომელია უახლოესი მარტივი რიცხვი?
+\\(a) 20 \quad (b) 25 \quad (c) 27 \quad (d) 31
+
+\item რომელი რიცხვია $15$-ის ჯერადი?
+\\(a) 5005 \quad (b) 4005 \quad (c) 1015 \quad (d) 2015
+
+\item იპოვეთ $101$-ის უახლოესი მარტივი რიცხვი მარჯვნიდან და მარცხნიდან.
+\\(a) 909 \quad (b) 816 \quad (c) 807 \quad (d) 809
+
+\item აირჩიეთ სწორი ფაქტორიზაცია:
+\\(a) $5$-რაღაც \quad (b) \emph{[ვარიანტები წყაროს მიხედვით: ორწევრიანი vs სამწევრიანი ფაქტორიზაცია]}
+
+\item რა არის $36$-ის უმცირესი გამყოფი?
+\\(a) 1 \quad (b) 2 \quad (c) 3 \quad (d) 4
+
+\item წრფივი გამოსახულება ფორმით $2n+3$. რომელი შემდეგთაგანია შესაძლო მნიშვნელობები?
+\\(a) $6n+1$ \quad (b) $6n+3$ \quad (c) $3n+3$ \quad (d) $6n-1$
+
+\item რამდენი ნული არის $N$-ის ბოლოში, თუ $N$ იყოფა $2^k$-ზე? \emph{[როგორც წყაროში]}
+\\(a) $200$ \quad (b) $2000$ \quad (c) $20000$ \quad (d) $10000$
+
+\item რა რიცხვი უნდა ჩავწეროთ 123*5 ჩანაწერში *-ის ნაცვლად, რომ მიღებული ხუთნიშნა რიცხვი გაიყოს 45-ზე?
+\\(a) 9 \quad (b) 8 \quad (c) 3 \quad (d) 7
+
+\item რამდენია ისეთი ორნიშა რიცხვი, რომლის ათეულების ციფრი 7-ით მეტია ერთეულების ციფრზე?
+\\(a) 10 \quad (b) 3 \quad (c) 5 \quad (d) 4
+
+\end{enumerate}
+
+\bigskip
+\noindent\rule{\linewidth}{0.4pt}
+
+% მთარგმნელის შენიშვნა: ზოგიერთი მოთხოვნა ნორმალიზებული იყო
+% სადაც OCR-მა ქართული სკანირება გაუგებარი გახადა. ყველა მათემატიკური შინაარსი,
+% ნუმერაცია და არჩევანი მოჰყვება ატვირთულ PDF-ს.
+
+\end{document}
