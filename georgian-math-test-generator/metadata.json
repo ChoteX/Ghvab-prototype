@@ -1,0 +1,5 @@
+{
+  "name": "Georgian Math Test Generator",
+  "description": "An application that takes a LaTeX script of an existing math test and generates a new LaTeX script with 10 similar test samples for Georgian students.",
+  "requestFramePermissions": []
+}
