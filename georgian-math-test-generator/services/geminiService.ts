@@ -2,7 +2,7 @@
 import { GoogleGenAI } from "@google/genai";
 
 export async function generateTestSamples(existingTestLatex: string): Promise<string> {
-  const API_KEY = "AIzaSyCNUqX8eiQv3Q-4z1bd3WVR_-ISR1P8Z6o";
+  const API_KEY = "INSERT_GEMINI_API_KEY";
 
   if (!API_KEY) {
     throw new Error("API key is not configured.");
