@@ -1,3 +1,5 @@
+![Ghvab prototype screenshot](screenshot.png)
+
 # Ghvab Textbook — Content & Exercises Guide
 
 This project renders bilingual textbook content and companion exercises from JSON sources into interactive HTML pages. The repo contains:
