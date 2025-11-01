@@ -1,0 +1,325 @@
+% !TEX TS-program = xelatex
+\documentclass[12pt,oneside]{book}
+
+\usepackage[a4paper,margin=1in]{geometry}
+
+\usepackage{fontspec}
+\defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+\usepackage{polyglossia}
+\setdefaultlanguage{english}
+
+% Text: DejaVu Serif fully supports Georgian & standard punctuation
+\setmainfont{DejaVu Serif}
+\newfontfamily\georgianfont{DejaVu Serif}[Script=Georgian]
+\setsansfont{DejaVu Sans}
+\setmonofont{DejaVu Sans Mono}
+
+% Math: STIX Two Math (excellent brackets/dots coverage)
+\usepackage{unicode-math}
+\setmathfont{STIX Two Math}
+
+\usepackage[protrusion=true,expansion=false]{microtype}
+\usepackage{enumitem}
+\setlist{nosep}
+\usepackage{graphicx}
+\usepackage[unicode]{hyperref}
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE,RO]{\thepage}
+\fancyhead[LO,RE]{\nouppercase{\leftmark}}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\chaptermark}[1]{\markboth{#1}{}}
+\renewcommand{\sectionmark}[1]{\markright{#1}}
+
+\begin{document}
+
+\begin{center}
+{\Large \textbf{Chapter I}}\\[0.25em]
+\textbf{Basic Properties of Natural and Integer Numbers}
+\end{center}
+
+\section*{Natural Numbers and Their Properties}
+Sequence of natural numbers: $1\dotsep 2\dotsep 3\dotsep 4\dotsep \ldots$
+
+Set of integers: $\ldots\dotsep -3\dotsep -2\dotsep -1\dotsep 0\dotsep 1\dotsep 2\dotsep 3\dotsep \ldots$
+
+\subsection*{Properties of Addition}
+For all $a,b,c\in\Z$:
+\begin{align*}
+a+b&=b+a \quad\text{(commutativity)},\\
+(a+b)+c&=a+(b+c) \quad\text{(associativity)}.
+\end{align*}
+
+\noindent \textbf{Example.} $1925+317+3075= (1925+317)+3075 = 317+(1925+3075)=317+5000=5317.$
+
+\subsection*{Properties of Multiplication}
+For all $a,b,c\in\Z$:
+\begin{align*}
+ab&=ba \quad\text{(commutativity)},\\
+(ab)c&=a(bc) \quad\text{(associativity)},\\
+(a+b)c&=ac+bc \quad\text{(distributivity over addition)}.
+\end{align*}
+
+\subsection*{Distribution of Subtraction}
+$(a-b)c=ac-bc$. \quad \textit{Example:} $1756\cdot 2179-1756\cdot 2178 = 1756(2179-2178)=1756\cdot 1=1756$.
+
+\subsection*{Decimal Representation of Numbers}
+Digits: $0,1,2,3,4,5,6,7,8,9$.\\
+For example, $4193=3 + 9\cdot 10 + 1\cdot 10^2 + 4\cdot 10^3 = 3 + 90 + 100 + 4000$.
+
+\section*{Combinations and Simple Transformations of Numbers}
+The following examples show distributivity and grouping in decimal representation:
+\begin{align*}
+\overline{ab}&=b+10a,\\
+\overline{abc}&=c+10b+100a.
+\end{align*}
+Hence, $ab+ba = (b+10a) + (a+10b) = 11(a+b)$.
+
+\subsection*{Computational Exercises}
+\begin{enumerate}[label=\arabic*.]
+  \item Compute $48+64+96$ and show that it is a multiple of $16$.
+  \item Prove that the result of the expression $105\cdot 48:93:54$ does not change under substitution (see explanation in the text).
+  \item Consider sets $A$ and $B$ and check whether $A=B$ under the given conditions.
+  \item Pair even and odd numbers in the lists (0,2,4,6,\ldots) and (1,3,5,7,\ldots).
+  \item Identify which numbers are multiples of $5$ — justify your reasoning.
+\end{enumerate}
+
+\section*{Even and Odd Sequences}
+If a number is divisible by 2 without remainder, it is \textit{even}; otherwise, it is \textit{odd}. Typical examples:
+\begin{align*}
+\ldots,-4,-2,0,2,4,6,\ldots \quad &\text{(even)}\\
+\ldots,-3,-1,1,3,5,\ldots \quad &\text{(odd)}
+\end{align*}
+
+\section*{Prime Numbers and Factorization}
+Prime numbers are: $2,3,5,7,11,13,\ldots$ \\
+For example:
+\begin{align*}
+14&=2\cdot 7, & 81&=3\cdot 3\cdot 3\cdot 3, & 484&=2\cdot 2\cdot 11\cdot 11.
+\end{align*}
+
+\subsection*{Greatest Common Divisor $D$ and Least Common Multiple $K$}
+Example: Find $D(126,540,630)$.
+\begin{align*}
+126&=2\cdot 3^2\cdot 7,\quad 540=2^2\cdot 3^3\cdot 5,\quad 630=2\cdot 3^2\cdot 5\cdot 7,\\
+D(126,540,630)&=2^1\cdot 3^2=18.
+\end{align*}
+
+Example: Find $K(270,300,315)$.
+\begin{align*}
+270&=2\cdot 3^3\cdot 5, \quad 300=2^2\cdot 3\cdot 5^2, \quad 315=3^2\cdot 5\cdot 7,\\
+K(270,300,315)&=2^2\cdot 3^3\cdot 5^2\cdot 7=18900.
+\end{align*}
+
+\section*{Identities of Sums and Products}
+\begin{align*}
+8+79+780+7781+77782+777783 &= 777783-6,\\
+1+2+3+4+5+6 &= 21,\\
+7778\cdot 7779\cdot 7780\cdot 7781\cdot 7782\cdot 7783 &\text{ — consider divisibility by 7.}
+\end{align*}
+
+\section*{Number Systems}
+Decimal and binary representations.
+\begin{align*}
+100 &= (1100100)_2,\\
+(10011)_2&=1\cdot 2^4+0\cdot 2^3+0\cdot 2^2+1\cdot 2^1+1\cdot 2^0=19,\\
+1029&=1\cdot 10^3+0\cdot 10^2+2\cdot 10^1+9\cdot 10^0 = 1000+20+9.
+\end{align*}
+
+\bigskip
+\noindent\rule{\linewidth}{0.4pt}
+
+
+
+
+\begin{center}
+{\Large \textbf{Part II}}\\[0.25em]
+\textbf{\S 1. Natural and Integer Numbers}
+\end{center}
+
+\section*{Exercise set A}
+
+\begin{enumerate}[label=\textbf{\arabic*.\arabic*.}, leftmargin=2.2em, itemsep=0.35em]
+
+% ---------- Page 1 ----------
+\item Which of the following numbers are prime?
+\\(1) 55\quad (2) 617\quad (3) 5027\quad (4) 42028
+
+\item Which of the following numbers are composite?
+\\(1) 389\quad (2) 1507\quad (3) 323061\quad (4) 52713
+
+\item Determine the parity (even/odd) of the following numbers:
+\\(1) 531\quad (2) 2399\quad (3) 4057\quad (4) 20712
+
+\item Choose the correct statements about integers:
+\\(1) and (2) \emph{[statement variants in the source]}\\
+(3) \emph{It is possible to form \ldots}\quad
+(4) \emph{Zero is neither positive nor negative.} % normalized from the scan
+
+\item Determine the sign of each result (positive/negative/zero) \emph{without} computing the exact value.
+\\(Context: sums/products with indicated signs.)
+
+\item Which of the following are integers?
+\\(1) $a+b$\quad (2) $a-b$\quad (3) $c+d$\quad (4) $\tfrac{c}{d}$\quad
+(5) $cd$\quad (6) $a+c$\quad (7) $a-c$\quad (8) $ac$\quad (9) $2c+a$\quad
+(10) $2c-3a$\quad (11) $a^2-c^2$\quad (12) $3a^2+2c^2$
+
+\item Evaluate (order of operations and parentheses):
+\\(1) $24$\quad (2) $77$\quad (3) $128$\quad (4) $4128$ \hfill\emph{[short practice items]}
+
+\item Find the least common multiple (LCM) of the following pairs (or sets) of integers.
+\\(1) 28\quad (2) 99\quad (3) 200\quad (4) 532
+
+\item Find the greatest common divisor (GCD) of the following integers.
+\\(1) 12\quad (2) 13\quad (3) 50\quad (4) 120
+
+\item How many natural divisors does $66$ have?
+
+\item Find the number of common divisors of the given numbers.
+\\(1) 15\quad (2) 19\quad (3) 27\quad (4) 48
+
+\item Compute the LCM of each pair:
+\\(1) $12$ and $42$\quad (2) $240$ and $360$\quad (3) $1680$ and $4200$\quad (4) $180,\ 270,\ 450$
+
+\item Compute the GCD of each group:
+\\(1) $12$ and $15$\quad (2) $24,\ 30,\ 60$\quad (3) $7,\ 8,\ 13$\quad (4) $20,\ 65,\ 125$
+
+\item Simplify the following expressions:
+\\(1) $2^5\cdot 3^7\cdot 5^{-3}$ and $2^1\cdot 3^3\cdot 5^2$
+\\(2) $2^{-7}\cdot 3^2$ and $2^2\cdot 7^3$ \hfill\emph{[standardize powers per source]}
+
+% ---------- Page 2 ----------
+\setcounter{enumi}{15}
+
+\item Word problems with divisibility (paraphrased from the scan):
+\\(1) If a number leaves remainder $n$ upon division by $m$, what is the remainder of \ldots?
+\\(2) If an integer increases by $+2$, how does the parity change?
+\\(3) \emph{[Divisibility with sums]} \quad
+(4) If an integer increases by $+1$, how does \ldots?
+
+\item Construct the smallest (or largest) $n$-digit number satisfying the given digit constraints. \emph{[as in source]}
+
+\item How many integers satisfy the given inequality/interval? \emph{[count of integer solutions]}
+
+\item A class problem about seating/arrangement with totals 30, 40, and 47. Determine how many \ldots \emph{[as in source]}
+
+\item Arithmetic with mixed operations (choose the correct result):
+\\(1) $1*00$\quad (2) $25*8$\quad (3) $4*1$\quad (4) $*888$
+\\\emph{[Here $*$ denotes juxtaposition in the source; rewrite as needed in class.]}
+
+\item Determine the place value of the underlined digit in each number:
+\\(1) $\underline{54312}$ \quad (2) $4532\underline{\phantom{0}}$ \quad (3) $32*25$ \quad
+(4) $*3260$ \quad (5) $423*0$ \quad (6) $*2310$ \emph{[positions per source]}
+
+\item Write the following large numbers using grouping (with spaces) and in words:
+\\(1) 1275\quad (2) 33333\quad (3) 10203040\quad (4) 1919191919
+
+\item Two word problems involving time/rate ``5 days'' and ``7 days'' scenarios (LCM/GCD applications). \emph{[as in source]}
+
+\item If $a$ and $b$ are integers and $a-b$ is divisible by $5$, determine which expressions are divisible by $5$. \emph{[per source]}
+
+\item If an integer is divisible by $17$ and another related quantity equals $8$, what can be said about $a+b$ modulo $17$? \emph{[per source]}
+
+\item Short answers:
+\\(1) \emph{Choose the correct option based on sign/size.}
+\\(2) A rounding/estimation task to the nearest 10; then to the nearest 100. \emph{[as in source]}
+
+\item Order the following integers on the number line:
+\\(1) from $-2$ to $0$ \quad (2) from $-2$ to $3$ \quad (3) from $-5$ to $1$ \quad (4) from $-1$ to $9$
+
+\item Compute:
+\\(1) $-2+5-6$\quad (2) $-11-(-3)$\quad (3) $14-(-4)$\quad (4) $-17+(+2)$\\
+(5) $(-2-3)+2+5$\quad (6) $(-2+6)+(-6)$\quad (7) $(-2-5)-(+3-7)$\quad (8) $(-10+3-4)(4-6)$
+
+\item Compute:
+\\(1) $3(9-11)-4(8-9)$ \quad (2) $-5(-7-5)+3(6-9)$ \quad (3) $\dfrac{5\,(9-13)\,(-4)}{-8\,(9-14)}$ \quad (4) $\dfrac{-7\,(20-11)\cdot 2}{3\,(2-16)}$
+
+% ---------- Page 3 ----------
+\setcounter{enumi}{30}
+
+\item Compute:
+\\(1) $36:3-9$ \quad (2) $36:(3-9)$ \quad (3) $30-15:3$ \quad (4) $(30-15):3$\\
+(5) $240-25:(13-8)$ \quad (6) $120:(10-16)-20$ \quad (7) $50-(-20):5$ \quad (8) $(50-(-20)):5$
+
+\item Word problems:
+\\(1) A worker spends 6 days on one task and 70 pages on another; if 50 pages are \ldots determine how many days are needed for \ldots
+\\(2) A number $152\;2\underline{\phantom{0}}3$ is divisible by 16; find the missing digit. \emph{[as in source]}
+
+\item In class A there are 10 more students than in class B. If \ldots When classes are combined \ldots find the sizes of A and B. \emph{[as in source]}
+
+\item A rectangle with perimeter information; find side lengths given the relations and that the perimeter is 28. \emph{[as in source]}
+
+\item A train travels 59 km in the first hour and \ldots Determine the total distance after 10 hours. \emph{[as in source]}
+
+\item Let $x,y,z$ be integers. If $xy-3z$ is divisible by \ldots determine whether \ldots
+
+\item Choose the correct scientific notation (or magnitude) for each number:
+\\(1) $10$ \quad (2) $10\,000$ \quad (3) $41$
+
+\item Evaluate the squares (pattern recognition):
+\\(1) $(11)^2$ \quad (2) $(111)^2$ \quad (3) $(1000)^2$ \quad (4) $(10000)^2$
+
+\end{enumerate}
+
+\bigskip
+\section*{Control Test N1 (A)}
+
+\begin{enumerate}[label=\textbf{\arabic*.}, leftmargin=2.2em, itemsep=0.35em, resume*]
+
+\item Which of the following numbers is divisible by $6$?
+\\(a) 273 \quad (b) 412 \quad (c) 1002 \quad (d) 3004
+
+\item Compute: $400:(25-75)-200:(13-33)$
+\\(a) $2$ \quad (b) $18$ \quad (c) $-18$ \quad (d) $-2$
+
+\item In which year between 2011 and \ldots does the number of \ldots become divisible by $5$?
+\\(a) 2 \quad (b) 5 \quad (c) 3
+
+\item Let $a,b,c,d$ be defined by $a=3\cdot(5-7)$, $b=3-5-7$, $c=ab$, $d=a+b$. Choose the correct order:
+\\(a) $a,c,b,d$ \quad (b) $c,a,d,b$ \quad (c) $c,d,b,a$ \quad (d) $c,d,a,b$
+
+\item The number $123$ is increased by 8 and then decreased by 3. In which interval does the result lie?
+\\(a) 10 \quad (b) 15 \quad (c) 20 \quad (d) 12
+
+\item A school has 155 first-graders and 62 \ldots Which is the nearest prime?
+\\(a) 20 \quad (b) 25 \quad (c) 27 \quad (d) 31
+
+\item Which number is a multiple of $15$?
+\\(a) 5005 \quad (b) 4005 \quad (c) 1015 \quad (d) 2015
+
+\item Find the nearest prime to $101$ from the right and from the left.
+\\(a) 909 \quad (b) 816 \quad (c) 807 \quad (d) 809
+
+\item Choose the correct factorization:
+\\(a) $5\text{-something}$ \quad (b) \emph{[options per source: two-term vs. three-term factorization]}
+
+\item What is the smallest divisor of $36$?
+\\(a) 1 \quad (b) 2 \quad (c) 3 \quad (d) 4
+
+\item A linear expression of the form $2n+3$. Which of the following are possible values?
+\\(a) $6n+1$ \quad (b) $6n+3$ \quad (c) $3n+3$ \quad (d) $6n-1$
+
+\item How many zeros are at the end of $N$ if $N$ is divisible by $2^k$? \emph{[as in source]}
+\\(a) $200$ \quad (b) $2000$ \quad (c) $20000$ \quad (d) $10000$
+
+\item Find the units digit of $123^5$. \emph{[cyclicity of units digit]}
+\\(a) 9 \quad (b) 8 \quad (c) 3 \quad (d) 7
+
+\item Determine the missing number given that \ldots (divisibility by 7). \emph{[as in source]}
+\\(a) 10 \quad (b) 3 \quad (c) 5 \quad (d) 4
+
+\end{enumerate}
+
+\bigskip
+\noindent\rule{\linewidth}{0.4pt}
+
+% Translator's note (not printed): Some prompts were normalized
+% where OCR made the Georgian scan ambiguous. All math content,
+% numbering, and choices follow the uploaded PDF.
+
+\end{document}
+
+
+
